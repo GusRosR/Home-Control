@@ -41,3 +41,23 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Category{
+    id:number;
+    name: string;
+    parent_id: number | null;
+    parent?: {
+        id:number;
+        name: string;
+    } | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PageProps {
+    
+    categories: {
+        data:Category[]
+    },
+    [key: string]:unknown;
+}

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('parent_id')
             ->nullable() 
             ->constrained('categories') //Tells Laravel it's a foreign key referencing the same table
-            ->nullOnDelete(); //Turns to a top category if parent is deleted
+            ->onDelete('cascade'); //Erases all associated records to it
             $table->timestamps();
         });
     }

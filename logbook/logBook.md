@@ -574,3 +574,85 @@ php artisan migrate:fresh --seed
 
 And after doing these steps, the thing worked. 
 
+Now, in order to keep track of our changes and to publish every dev-sesh it's time to push the project into git and GitHub. I think Laravel asks when creating the app if we want to initialize a git repository, if you selected to do so, if you run:
+
+```bash
+git status
+```
+
+Your output will show some files in red that indicate that the files haven't been added to the commit queue yet. If you didn't select to initialize a git repo it will show something like: "There is not a git repository here". If that's the case we type the command:
+
+```bash
+git init
+```
+
+Then, we execute the command:
+
+```bash
+git add .
+```
+
+What this will do is to add to the queue all the files on this directory (except the ones declare on the *.gitignore* files). In my case, after I ran this command, I got the next messages:
+
+```bash
+warning: in the working copy of 'logbook/database.drawio', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'logbook/logBook.md', CRLF will be replaced by LF the next time Git touches it 
+```
+
+This is basically an end of line conflict, they are handled differently by Unix and Windows. This happens because the main functioning of git is through a Linux environment. This isn't actually a big deal but as we are working with the best practices we're gonna solve this issue so everything runs smoothly.
+
+First we installed the binaries of [unix2dos](https://sourceforge.net/projects/unix2dos/) on a folder in our system. What we download here is a zip file. Once we extract the four executable files we open a new terminal window on this location and in there we can already type the next commands:
+
+```bash
+.\unix2dos C:\Programming\Web\HomeControl\logbook\database.drawio
+.\unix2dos C:\Programming\Web\HomeControl\logbook\logbook.md 
+```
+
+This resolves the line end conflict and we're good to go. Finally, before we push our project we have to commit our changes locally. To do so we use the command:
+
+```bash
+git commit -m "Initial commit: Project setup, with migrations, models, factories and seeders"
+```
+
+Now it's time to push our changes to our GitHub repo. To do this we must first create an access token in our GitHub add because the username password authentication is deprecated. Doing this is quite straightforward. In our GitHub main page we click our **profile pic** to show the menu, then we click **Settings**, then we scroll down and click **Developer Settings**, then we collapse the options on **Personal access tokens** and select **Fine-grained tokens**, then **Generate new token** and we will be shown a forms where we will insert the name of our token, a brief description, the expiration time (I recommend leaving the 30 days). On repository access I always choose All repositories so I don't have any constraint. On the permissions, I set the read and write to the next categories:
+
+- Administration
+- Contents
+- Deployments
+
+And leave the account permissions as they are. Finally we click on **Generate token** and we will be given our token. We must copy and paste this token somewhere accessible and don't loose it because we won't be able to retrieve it. What I do typically is to paste it on my project folder and update the *.gitignore* file so it doesn't get pushed to the public remote repo.
+
+Once we´re done we do the following:
+
+1. We execute:
+```bash
+git remote add origin https://github.com/GusRosR/Home-Control.git
+```
+
+This points git to the repo we want to push.
+
+2. We execute:
+
+```bash
+git branch -M main
+```
+
+This renames our local main branch to match the name of the remote main branch.
+
+3. We execute:
+
+```bash
+git pull
+git push -u origin main
+```
+
+This updates what's on the remote repo first and then we push what we have.
+
+# Second dev-sesh -> Date: 3/07/2025 4:32 P.M
+## Tasklist
+
+- Create and understand controllers
+- Create and understand routes
+- Create our first dataTable in react
+- Perform unit testing for our controllers and views
+
