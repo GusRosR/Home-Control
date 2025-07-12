@@ -1,13 +1,14 @@
 
 import { DataTable } from "@/components/ui/data-table";
 import AppLayout from "@/layouts/app-layout";
-import { PageProps, type BreadcrumbItem } from "@/types";
+import { Category, PageProps, type BreadcrumbItem } from "@/types";
 import { Head, router, usePage } from "@inertiajs/react";
-import { columns } from "./columns";
+import { getColumns } from "./columns";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Create from "./Create";
+import { handleDelete, handlePageChange } from "./categories-service";
 
 
  const breadcrumbs: BreadcrumbItem[] = [
@@ -19,9 +20,25 @@ import Create from "./Create";
 
 export default function Index(){
 
-    const {categories} = usePage<PageProps>().props;
-    const [open, setOpen] = useState(false);
-
+    const {categories} = usePage<PageProps>().props; /* Variable to store Category page props */
+    const [openCreate, setOpenCreate] = useState(false); /* Category for opening and closing dialog pop up for adding categories */
+    const [openDelete, setOpenDelete] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null); //Variables to send the category to delete handler
+    
+     const onDeleteConfirm = () => {
+        if(!categoryToDelete) return;
+        handleDelete(categoryToDelete.id, () => {
+            setOpenDelete(false);
+            setCategoryToDelete(null);
+        });
+    } 
+    const columns = getColumns({
+        onDelete(category) {
+            setCategoryToDelete(category);
+            setOpenDelete(true);
+        },
+    });
+    console.log(usePage<PageProps>().props);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -34,19 +51,44 @@ export default function Index(){
                         Add Category
                     </Button> */}
 
-                    <Dialog open={open} onOpenChange={setOpen}>
+                    <Dialog open={openCreate} onOpenChange={setOpenCreate}>
                         <DialogTrigger asChild>
                             <Button>Add Category</Button>
                         </DialogTrigger>
 
                         <DialogContent>
                             <DialogTitle>Add a new category!</DialogTitle>
-                            <Create onSuccess={() => setOpen(false)} />
+                            <Create onSuccess={() => setOpenCreate(false)} />
                         </DialogContent>
                     </Dialog>
                 </div>
 
-                <DataTable columns={columns} data={categories.data} />
+                <DataTable 
+                    columns={columns} 
+                    data={categories.data}
+                    pagination= {{
+                        from: categories.from,
+                        to: categories.to,
+                        total: categories.total,
+                        links: categories.links,
+                        onPageChange: handlePageChange
+                    }}
+                />
+                <Dialog open={openDelete} onOpenChange={setOpenDelete}>
+                    <DialogContent>
+                        <DialogTitle>Are you sure?</DialogTitle>
+                        <DialogDescription>
+                            This will permannently delete the <strong>{categoryToDelete?.name}</strong> and the products
+                            associated with it.
+                        </DialogDescription>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <Button variant="destructive" onClick={onDeleteConfirm}>Delete</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     );

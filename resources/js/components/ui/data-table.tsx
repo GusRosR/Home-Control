@@ -14,15 +14,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import TablePagination from "./table-pagination";
+import { DataTableProps } from "@/types";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-}
+
+
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  pagination,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -74,6 +75,7 @@ export function DataTable<TData, TValue>({
           )}
         </TableBody>
       </Table>
+      {pagination && <TablePagination {...pagination}/>}
     </div>
   )
 }

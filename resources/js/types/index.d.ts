@@ -54,10 +54,40 @@ export interface Category{
     updated_at: string;
 }
 
+/* Interface for links to our paginated data */
+export interface PaginationLinks {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export interface PaginatedData<T> {
+    data: T[];
+    current_page: number;
+    from: number;
+    to: number;
+    total: number;
+    per_page: number;
+    last_page: number;
+    links: PaginationLinks[];
+}
+
+export interface TablePaginationProps {
+    from: number;
+    to: number;
+    total: number;
+    links: PaginationLinks[];
+    onPageChange: (url: string | null) => void;
+}
+
+export interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[]
+  data: TData[];
+  pagination?: TablePaginationProps;
+}
+
 export interface PageProps {
     
-    categories: {
-        data:Category[]
-    },
+    categories: PaginatedData<Category>,
     [key: string]:unknown;
 }

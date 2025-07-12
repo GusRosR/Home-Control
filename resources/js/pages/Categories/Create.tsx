@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Category, PageProps } from "@/types"
 import { router, usePage } from "@inertiajs/react"
+import { onSubmit } from "./categories-service"
 
 
 
@@ -28,26 +29,7 @@ export default function Create({onSuccess}: {onSuccess?: () => void}) {
             parent_id: ""
         },
     })
-
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        
-        const transformedValues = {
-            ...values,
-            parent_id: values.parent_id === "null" ? null : values.parent_id,
-        }
-        
-        router.post("/categories",transformedValues, {
-            onSuccess: () => {
-                console.log(transformedValues)
-                form.reset();
-            },
-            onError: (errors) => {
-                console.log("Validation errors", errors);
-            }
-        }) 
-       
-    }
-
+    
     return(
        
         <Form {...form}>

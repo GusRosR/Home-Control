@@ -118,7 +118,7 @@ class CategoryController extends Controller
 
             //Get the associated records count for reuse
             $productsCount = $category -> products() -> count();
-            $childrenCount = $category -> children() -> couunt();
+            $childrenCount = $category -> children() -> count();
 
             //Validation that user confirmed delete and associated records exist
             if(!$request->has('confirm') && ($productsCount > 0 || $childrenCount > 0)){
