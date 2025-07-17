@@ -653,6 +653,164 @@ This updates what's on the remote repo first and then we push what we have.
 
 - Create and understand controllers
 - Create and understand routes
-- Create our first dataTable in react
-- Perform unit testing for our controllers and views
+- Create our first dataTable in react and fetch our DB info
+- Create our form to insert registers to the DB.
+- Link the index file with the forms to push data to the DB
+
+### Create and understand controllers
+
+As before, it's important to first understand what a controller is and what it does in our application. Once again using an analogy, we can imagine a restaurant where we have recipes (our models), the pantry with labels and containers for organization (our migrations) and the ingredients we have to cook our food (our factories and seeders). A controller in our restaurant is the head waiter, they take an order from a customer (the browser), then it moves to the kitchen (our model), there he gets the food (our data) and maybe tell the chef to cook something (CRUD) and finally it takes it back to the customer. Notice how our controller is not actually cooking or disposing anything, it's only the middleman that understands the request, know what to do with it and who to talk to so it can be completed successfully. Talking on technical terms, our controller receives a request from the browser and passes the instructions to the routes to know what do do and the models or database that are who actually do the job.
+
+According to the documentation, there are multiple ways in which we can create a controller, however, as we're using react for our frontend, we will create the controllers using the resource flag:
+
+```bash
+php artisan make:controller CategoryController --resource
+php artisan make:controller ProductController --resource
+```
+What this will do is that it will create inside our controller all our CRUD methods we'll need to allow the user to interact with out app. All our controllers are found on the *app/Http/Controllers* folder. Now, let's take a look at our CategoryController:
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class CategoryController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        //
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        //
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        //
+    }
+}
+
+```
+
+Now, as we can see, all methods have been created. 
+
+The main intention of this file is to tell Laravel what to do when the user gets to one of our endpoints, like home-control/categories and so on. 
+
+Each one of the operations declared on this file are the most commonly used functions inside a program with user interaction. Let's go step by step watching what each method looks like in their final form and why they ended up that way.
+
+```php
+public function index()
+    {
+        $categories = Category::with('parent')
+            ->orderBy('id', 'desc')
+            ->paginate(15); //Retrieves 15 registers at a time
+        return Inertia::render('Categories/Index', [ //First parameter -> the view we will render
+            'categories' => $categories // Second parameter -> This tells Laravel, after rendering the view
+        ]);                             // pass to it a prop called categories, it's value is the paginated Categories
+    }
+```
+
+The comments on the code make it easier to understand, however, a quick explanation of what happens here is; First we save into a variable all the registers inside our Category database, remember that "Category" in this context refers to one of our database tables, then we use *with* that takes all the registers along with their parent register if that's the case. To understand this better we can look at this part in our model:
+
+```php
+//Relationship where a category can have a parent category
+    public function parent(){
+        return $this->belongsTo(Category::class, 'parent_id');
+    }
+```
+
+In here, what we told Laravel is: "A category can have only one parent, and this parent is represented by parent_id". So, when we select our registers using "with", it allows us to retrieve also it's related parent so we can then display in our table. Then, with the *orderBy* we sort the data on the table from the newest to the oldest entry, this is really a preference stuff so if you like you can skip this property. Finally with *paginate* we restrict our controller so it only shows 15 registers from our database on each page. This helps us to keep a cleaner look in addition to the fact that we'll ad advanced filtering and/or search mechanisms to interact with our data on the table. After this we use Inertia to render our page, more information about its usage, methods and conventions can be found [here](https://inertiajs.com/). Now, the render method receives two paremeters. The first one is the URL to where we want to get the page to redirect to, the second parameter correspond to the props we want to send to that page when rendering.
+
+**What is a prop?**
+A prop or property is nothing more than information that React uses inside its pages. The way we can think of it is like a mail. Inertia::render is basically saying, "Send to this address (our URL) this attachments (our props)". The bennefit of this is that first, the page already has the information when its rendering, which boosts performance (although it can lead to the page not to render if an unexpected error appears), and second of all, it allows us to access the information without having to query inside our page which makes our program cleaner and simpler.
+
+Now, when we pass in the props, the syntax we're using is *key: value*, in other words, theNameWeWantToGiveOurProps => ourPropsVariable. This is important as we're then going to access our props without the dollar sign, by the name we assign here.
+
+```php
+public function create()
+    {
+        $categories = Category::select('id', 'name')->get(); 
+
+        return Inertia::render('Categories/Create', [
+            'categories' => $categories
+        ] ); //Just returns the view with the forms to add a new category
+    }
+```
+
+For the create function we will also render a view, typically this method is used to return the view/component/page where our form for adding records to the database is. In this case, we use once again a variable to store a query performed with eloquent queries. In here we do a normal select to our table, the only difference is that we only retrieve the id and name columns as they're the only values we're gonna be needing. The get method is used so we can get the actual collection of data and not just an instance of our model (as it would happen if we used *find()*). Finally, once again we pass in that data collection as props to our page. In many cases this wouldn't be necessary, but here we are doing it because we're gonna use a select component that will be populated with records from our DB, however this approach may not always be needed.
+
+```php
+public function store(Request $request)
+    {
+        try {
+
+            //We create rules to validate input data
+            $validated = $request->validate([
+                'name' => 'required|string|max:150',
+                'parent_id' => 'nullable|exists:categories,id', //Makes sure that matches an actual id on the table if filled
+            ]);
+
+            Category::create($validated); //Creates a record with sanitized data
+
+            //Redirect the user back to the index with a success message
+            return redirect()
+                ->route('categories.index')
+                ->with('success', 'Category created successfully!');
+
+        } catch (\Exception $e) {
+
+            //Take the user to the previous page and return the error message
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to create the category: ' . $e->getMessage());
+        }
+    }
+```
+
+This method is the one used to handle the logic for inserting data into our DB, it receives the request made by the browser and stores it in a variable that we'll use later. The first thing we do is to take the request of the browser and validate that the data being pushed follows our criteria defined inside the *validate* method array. We can add as much validation as we need and it's best recommended to add it on this file as this is server-side. After retrieving this validated data we create the record inside our DB using the *create* method. If the creation goes as expected, we redirect our user to the index so we can see the created record in our table, finally on this section, we use the *with* method to send a message that we'll use later. On the other section, we use the *Exception* class so we can then retrieve the error message in case anything fails unexpectedly. Inside this block we will redirect the user back (the form view) and we send the error message.
 

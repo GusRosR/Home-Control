@@ -76,7 +76,7 @@ class CategoryController extends Controller
     public function edit(Category $category) //we pass the model as a parameter for model binding
     {
         return Inertia::render('Categories/Edit', [
-            'category' => $category //We render the page passing the model as a prop so the routes get the resource to be edited faster
+            'category' => $category, //We render the page passing the model as a prop so the routes get the resource to be edited faster
         ]);
     }
 
@@ -97,7 +97,7 @@ class CategoryController extends Controller
 
             //Redirect the user back to the edit page with a success message
             return redirect()
-                ->route('categories.edit', $category->id)
+                ->route('categories.index', $category->id)
                 ->with('success', 'Category updated successfully!');
 
         } catch (\Exception $e) {

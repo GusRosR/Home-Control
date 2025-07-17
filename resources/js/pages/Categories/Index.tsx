@@ -1,4 +1,6 @@
 
+"use client"
+
 import { DataTable } from "@/components/ui/data-table";
 import AppLayout from "@/layouts/app-layout";
 import { Category, PageProps, type BreadcrumbItem } from "@/types";
@@ -9,6 +11,7 @@ import { useState } from "react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Create from "./Create";
 import { handleDelete, handlePageChange } from "./categories-service";
+import Edit from "./Edit";
 
 
  const breadcrumbs: BreadcrumbItem[] = [
@@ -21,9 +24,11 @@ import { handleDelete, handlePageChange } from "./categories-service";
 export default function Index(){
 
     const {categories} = usePage<PageProps>().props; /* Variable to store Category page props */
-    const [openCreate, setOpenCreate] = useState(false); /* Category for opening and closing dialog pop up for adding categories */
-    const [openDelete, setOpenDelete] = useState(false);
+    const [openCreate, setOpenCreate] = useState(false); /* Variables for opening and closing dialog pop up for adding categories */
+    const [openDelete, setOpenDelete] = useState(false); /* Variables for opening and closing dialog pop up for deleting categories */
+    const [openEdit, setOpenEdit] = useState(false); /* Variables for opening and closing dialog pop up for editing categories */
     const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null); //Variables to send the category to delete handler
+    const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null); //Variables to send the category to delete handler
     
      const onDeleteConfirm = () => {
         if(!categoryToDelete) return;
@@ -33,12 +38,16 @@ export default function Index(){
         });
     } 
     const columns = getColumns({
+        onEdit: (category) =>{
+            setCategoryToEdit(category);
+            setOpenEdit(true);
+        },
         onDelete(category) {
             setCategoryToDelete(category);
             setOpenDelete(true);
         },
     });
-    console.log(usePage<PageProps>().props);
+    /* console.log(usePage<PageProps>().props); */
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -51,6 +60,7 @@ export default function Index(){
                         Add Category
                     </Button> */}
 
+                    {/* Pop up that shows when the user clicks Add Category */}
                     <Dialog open={openCreate} onOpenChange={setOpenCreate}>
                         <DialogTrigger asChild>
                             <Button>Add Category</Button>
@@ -61,6 +71,8 @@ export default function Index(){
                             <Create onSuccess={() => setOpenCreate(false)} />
                         </DialogContent>
                     </Dialog>
+
+                    
                 </div>
 
                 <DataTable 
@@ -74,11 +86,13 @@ export default function Index(){
                         onPageChange: handlePageChange
                     }}
                 />
+
+                {/* Dialog to show to wait for user confirmation for deletition */}
                 <Dialog open={openDelete} onOpenChange={setOpenDelete}>
                     <DialogContent>
                         <DialogTitle>Are you sure?</DialogTitle>
                         <DialogDescription>
-                            This will permannently delete the <strong>{categoryToDelete?.name}</strong> and the products
+                            This will permannently delete the <strong>{categoryToDelete?.name}</strong> category and the products
                             associated with it.
                         </DialogDescription>
                         <DialogFooter>
@@ -89,6 +103,22 @@ export default function Index(){
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+
+                {/* Pop up that shows when the user clicks the edit icon on the table records */}
+                    <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+                        <DialogContent>
+                            <DialogTitle>Edit Category</DialogTitle>
+                            {categoryToEdit && (
+                            <Edit
+                                category={categoryToEdit}
+                                onSuccess={() => {
+                                setOpenEdit(false);
+                                setCategoryToEdit(null);
+                                }}
+                            />
+                            )} 
+                        </DialogContent>
+                    </Dialog>
             </div>
         </AppLayout>
     );

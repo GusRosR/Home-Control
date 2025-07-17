@@ -1,57 +1,72 @@
-
 import { router } from '@inertiajs/react';
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog"
+import { toast } from 'sonner';
 
-export function onSubmit(values: z.infer<typeof formSchema>) {
-        
-        const transformedValues = {
-            ...values,
-            parent_id: values.parent_id === "null" ? null : values.parent_id,
-        }
-        
-        router.post("/categories",transformedValues, {
-            onSuccess: () => {
-                console.log(transformedValues)
-                form.reset();
-            },
-            onError: (errors) => {
-                console.log("Validation errors", errors);
-            }
-        }) 
-       
-    }
+export function onSubmit(
+    values: z.infer<typeof formSchema>,
+    onSuccess?: () => void,
+    onError?: () => void
+    ) {
+    const transformedValues = {
+        ...values,
+        parent_id: values.parent_id === 'null' ? null : values.parent_id,
+    };
+    router.post('/categories', transformedValues, {
+        onSuccess: () => {
+            onSuccess?.();
+            toast('Category successfully created!');
+        },
+        onError: (errors) => {
+            onError?.();
+            toast('Ooops! Something went wrong!', {
+                description: `The record couldn not be created for the next reasons: ${errors}`,
+            });
+        },
+    });
+}
 
 export function handleDelete(id: number, onSuccess?: () => void, onError?: () => void) {
     router.delete(`categories/${id}`, {
-        data: {confirm:true},
-    onSuccess: () => {
-        console.log("Succesfully deleted");
-      onSuccess?.()
-    },
-    onError: (errors) => {
-        console.error("Failed to delete", errors);
-      onError?.()
-    },
-  })
+        data: { confirm: true },
+        onSuccess: () => {
+            toast('Category successfully deleted!');
+            onSuccess?.();
+        },
+        onError: (errors) => {
+            console.error('Failed to delete', errors);
+            toast('Ooops! Something went wrong!', {
+                description: `The record couldn not be deleted for the next reasons: ${errors}`,
+            });
+            onError?.();
+        },
+    });
 }
 
+export function handleEdit(
+    id:number,
+    values: z.infer<typeof formSchema>,
+    onSuccess?: () => void,
+    onError?: () => void
+    ) {
+    const transformedValues = {
+        ...values,
+        parent_id: values.parent_id === 'null' ? null : values.parent_id,
+    };
+    router.put(`categories/${id}`, transformedValues, {
+        onSuccess: () => {
+            onSuccess?.();
+            toast('Category successfully updated!');
+        },
+        onError: (errors) => {
+            onError?.();
+            toast('Ooops! Something went wrong!', {
+                description: `The record could not be updated for the next reasons: ${errors}`,
+            });
+        },
+    });
+}
 
-
-
-
-
-export function handlePageChange(url:string | null) {
-        if(url) {
-            router.get(url);
-        }
+export function handlePageChange(url: string | null) {
+    if (url) {
+        router.get(url);
     }
+}
