@@ -12,6 +12,10 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import Create from "./Create";
 import { handleDelete, handlePageChange } from "./categories-service";
 import Edit from "./Edit";
+import { Input } from "@/components/ui/input";
+import { useCategoriesController } from "@/hooks/use-category-controller";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 
  const breadcrumbs: BreadcrumbItem[] = [
@@ -23,29 +27,26 @@ import Edit from "./Edit";
 
 export default function Index(){
 
-    const {categories} = usePage<PageProps>().props; /* Variable to store Category page props */
-    const [openCreate, setOpenCreate] = useState(false); /* Variables for opening and closing dialog pop up for adding categories */
-    const [openDelete, setOpenDelete] = useState(false); /* Variables for opening and closing dialog pop up for deleting categories */
-    const [openEdit, setOpenEdit] = useState(false); /* Variables for opening and closing dialog pop up for editing categories */
-    const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null); //Variables to send the category to delete handler
-    const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null); //Variables to send the category to delete handler
-    
-     const onDeleteConfirm = () => {
-        if(!categoryToDelete) return;
-        handleDelete(categoryToDelete.id, () => {
-            setOpenDelete(false);
-            setCategoryToDelete(null);
-        });
-    } 
+    const {categories } = usePage<PageProps>().props; /* Variable to store Category page props */
+
+     const {
+    search,
+    sort,
+    handleSearch,
+    handleSortChange,
+    dialog,
+    openCreateDialog,
+    closeCreateDialog,
+    openEditDialog,
+    closeEditDialog,
+    openDeleteDialog,
+    closeDeleteDialog,
+    confirmDelete
+  } = useCategoriesController();
+
     const columns = getColumns({
-        onEdit: (category) =>{
-            setCategoryToEdit(category);
-            setOpenEdit(true);
-        },
-        onDelete(category) {
-            setCategoryToDelete(category);
-            setOpenDelete(true);
-        },
+        onEdit: openEditDialog,
+        onDelete: openDeleteDialog,
     });
     /* console.log(usePage<PageProps>().props); */
 
@@ -56,68 +57,99 @@ export default function Index(){
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-bold">Categories</h1>
-                    {/* <Button>
-                        Add Category
-                    </Button> */}
-
+                   
                     {/* Pop up that shows when the user clicks Add Category */}
-                    <Dialog open={openCreate} onOpenChange={setOpenCreate}>
+                    <Dialog open={dialog.create} onOpenChange={(open) => open ? openCreateDialog() : closeCreateDialog()}>
                         <DialogTrigger asChild>
                             <Button>Add Category</Button>
                         </DialogTrigger>
 
                         <DialogContent>
                             <DialogTitle>Add a new category!</DialogTitle>
-                            <Create onSuccess={() => setOpenCreate(false)} />
+                            <Create onSuccess={closeCreateDialog} />
                         </DialogContent>
                     </Dialog>
 
                     
                 </div>
+                
+                <div className="flex items-center gap-4 mb-4">
+                  <Input
+                    type="text"
+                    placeholder="Search categories..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="max-w-sm mb-4"
+                  />
+                  <RadioGroup 
+                  defaultValue="newest" 
+                  className=" ml-2.5 flex items-center gap-4"
+                  onValueChange={handleSortChange}
+                  >
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="newest" id="newest" className="border-gray-500" />
+                        <Label htmlFor="newest">Newest</Label>                  
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="oldest" id="oldest" className="border-gray-500" />
+                        <Label htmlFor="oldest">Oldest</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="az" id="az" className="border-gray-500" />
+                        <Label htmlFor="az">A-Z</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="za" id="za" className="border-gray-500" />
+                        <Label htmlFor="za">Z-A</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                
 
                 <DataTable 
-                    columns={columns} 
-                    data={categories.data}
-                    pagination= {{
-                        from: categories.from,
-                        to: categories.to,
-                        total: categories.total,
-                        links: categories.links,
-                        onPageChange: handlePageChange
-                    }}
+                  columns={columns} 
+                  data={categories.data}
+                  pagination={{
+                    from: categories.from,
+                    to: categories.to,
+                    total: categories.total,
+                    links: categories.links,
+                    onPageChange: (url) => {
+                        if(typeof url === 'string'){
+                            router.get(url, { preserveState: true });
+                        }
+                    }
+                  }}
                 />
 
                 {/* Dialog to show to wait for user confirmation for deletition */}
-                <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-                    <DialogContent>
-                        <DialogTitle>Are you sure?</DialogTitle>
-                        <DialogDescription>
-                            This will permannently delete the <strong>{categoryToDelete?.name}</strong> category and the products
-                            associated with it.
-                        </DialogDescription>
-                        <DialogFooter>
-                            <DialogClose asChild>
-                                <Button variant="outline">Cancel</Button>
-                            </DialogClose>
-                            <Button variant="destructive" onClick={onDeleteConfirm}>Delete</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <Dialog open={dialog.delete} onOpenChange={(open) => open ? openDeleteDialog(dialog.categoryToDelete!) : closeDeleteDialog()}>
+                   <DialogContent>
+                     <DialogTitle>Are you sure?</DialogTitle>
+                     <DialogDescription>
+                       This will permanently delete the <strong>{dialog.categoryToDelete?.name}</strong> category and the products
+                       associated with it.
+                     </DialogDescription>
+                     <DialogFooter>
+                       <DialogClose asChild>
+                         <Button variant="outline">Cancel</Button>
+                       </DialogClose>
+                       <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                     </DialogFooter>
+                   </DialogContent>
+                 </Dialog>
 
                 {/* Pop up that shows when the user clicks the edit icon on the table records */}
-                    <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-                        <DialogContent>
-                            <DialogTitle>Edit Category</DialogTitle>
-                            {categoryToEdit && (
-                            <Edit
-                                category={categoryToEdit}
-                                onSuccess={() => {
-                                setOpenEdit(false);
-                                setCategoryToEdit(null);
-                                }}
-                            />
-                            )} 
-                        </DialogContent>
+                    <Dialog open={dialog.edit} onOpenChange={(open) => open ? openEditDialog(dialog.categoryToEdit!) : closeEditDialog()}>
+                      <DialogContent>
+                        <DialogTitle>Edit Category</DialogTitle>
+                        {dialog.categoryToEdit && (
+                          <Edit
+                            category={dialog.categoryToEdit}
+                            onSuccess={closeEditDialog}
+                          />
+                        )}
+                      </DialogContent>
                     </Dialog>
             </div>
         </AppLayout>

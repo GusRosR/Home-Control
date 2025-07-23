@@ -89,5 +89,13 @@ export interface DataTableProps<TData, TValue> {
 export interface PageProps {
     
     categories: PaginatedData<Category>,
+    flash: {
+        success?: string; //Type added to show flash messages from the backend 
+        error?: string;     // to the frontend
+    };
+    filters: {
+        search?: string; //Type added for server-side filtering
+        sort: string; //Type added for server-side sorting
+    };
     [key: string]:unknown;
 }

@@ -6,19 +6,51 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+
 class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $categories = Category::with('parent')
-            ->orderBy('id', 'desc')
-            ->paginate(15); //Retrieves 15 registers at a time
-        return Inertia::render('Categories/Index', [ //First parameter -> the view we will render
-            'categories' => $categories // Second parameter -> This tells Laravel, after rendering the view
-        ]);                             // pass to it a prop called categories, it's value is the paginated Categories
+        $query = Category::with('parent');
+        
+        //Handle search
+        if ($request->filled('search')) {
+            $search = $request->search;
+           $query->where(function ($query) use ($search) {
+                $query->where('name', 'LIKE', "%{$search}%")
+                    ->orWhereHas('parent', function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%{$search}%");
+              });
+    });
+        }
+
+        // Handle sort
+    $sort = $request->get('sort', 'newest');
+
+    switch ($sort) {
+        case 'oldest':
+            $query->orderBy('id', 'asc');
+            break;
+        case 'az':
+            $query->orderBy('name', 'asc');
+            break;
+        case 'za':
+            $query->orderBy('name', 'desc');
+            break;
+        default: // newest
+            $query->orderBy('id', 'desc');
+            break;
+    }
+    
+        $categories = $query->paginate(15)->withQueryString(); // Keep query params (like ?page=2&search=abc)
+    
+        return Inertia::render('Categories/Index', [
+            'categories' => $categories,
+            'filters' => $request->only('search','sort'), // Optional: send back the filter
+        ]);
     }
 
     /**
@@ -55,10 +87,11 @@ class CategoryController extends Controller
 
         } catch (\Exception $e) {
 
+            logger()->error('Category creation failed: ' . $e->getMessage());
             //Take the user to the previous page and return the error message
             return redirect()
                 ->back()
-                ->with('error', 'Failed to create the category: ' . $e->getMessage());
+                ->with('error', 'Category names must be unique');
         }
     }
 
@@ -102,10 +135,11 @@ class CategoryController extends Controller
 
         } catch (\Exception $e) {
 
+            logger()->error('Category creation failed: ' . $e->getMessage());
             //Take the user to the previous page and return the error message
             return redirect()
                 ->back()
-                ->with('error', 'Failed to update the category: ' . $e->getMessage());
+                ->with('error', 'Category names must be unique');
         }
     }
 
@@ -151,10 +185,11 @@ class CategoryController extends Controller
 
         } catch (\Exception $e) {
 
-            //Go back and show the error message
+            logger()->error('Category creation failed: ' . $e->getMessage());
+            //Take the user to the previous page and return the error message
             return redirect()
                 ->back()
-                ->with('error', 'Failed to delete the category: ' . $e->getMessage());
+                ->with('error', 'Category could not be deleted, try again');
         }
     }
 }

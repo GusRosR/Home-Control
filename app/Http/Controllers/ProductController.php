@@ -15,7 +15,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::with('categories')->latest()->paginate(15); //Queries products table with categories associated to them. Order from newest to oldest
+        $products = Product::with('categories')->latest(); //Queries products table with categories associated to them. Order from newest to oldest
         return Inertia::render('Products/Index', [
             'products' => $products //We pass collection of products as props to the page
         ]);

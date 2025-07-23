@@ -4,6 +4,7 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
+  getFilteredRowModel,
 } from "@tanstack/react-table"
 
 import {
@@ -16,14 +17,19 @@ import {
 } from "@/components/ui/table"
 import TablePagination from "./table-pagination";
 import { DataTableProps } from "@/types";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+
 
 
 
 
 export function DataTable<TData, TValue>({
+  
   columns,
   data,
   pagination,
+  
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -32,7 +38,7 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className="rounded-md border">
+      <div className="rounded-md border">    
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (

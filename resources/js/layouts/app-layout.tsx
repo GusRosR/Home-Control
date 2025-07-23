@@ -10,6 +10,7 @@ interface AppLayoutProps {
 
 export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => (
     <AppLayoutTemplate breadcrumbs={breadcrumbs} {...props}>
+        {/* We add the two lines below to show enable showing toast messages to the user */}
         {children}
         <Toaster />
     </AppLayoutTemplate>

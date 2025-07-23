@@ -41,6 +41,10 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+             'flash' => [ /* This is needed to show toast messages from the user brought from our controller */
+            'success' => fn () => $request->session()->get('success'), /* We retrieve the success */
+            'error' => fn () => $request->session()->get('error'), /* And error messages from the backend */
+            ],
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
