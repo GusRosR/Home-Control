@@ -29,11 +29,11 @@ export default function Index(){
 
     const {categories } = usePage<PageProps>().props; /* Variable to store Category page props */
 
-     const {
+    const {
     search,
-    sort,
+    sort, 
     handleSearch,
-    handleSortChange,
+    handleSortChange, 
     dialog,
     openCreateDialog,
     closeCreateDialog,
@@ -82,9 +82,9 @@ export default function Index(){
                     className="max-w-sm mb-4"
                   />
                   <RadioGroup 
-                  defaultValue="newest" 
+                  value={sort}
                   className=" ml-2.5 flex items-center gap-4"
-                  onValueChange={handleSortChange}
+                  onValueChange={handleSortChange} 
                   >
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="newest" id="newest" className="border-gray-500" />

@@ -16,9 +16,9 @@ class CategoryController extends Controller
     {
         $query = Category::with('parent');
         
+        $search = $request->search;
         //Handle search
         if ($request->filled('search')) {
-            $search = $request->search;
            $query->where(function ($query) use ($search) {
                 $query->where('name', 'LIKE', "%{$search}%")
                     ->orWhereHas('parent', function ($q) use ($search) {
@@ -48,8 +48,11 @@ class CategoryController extends Controller
         $categories = $query->paginate(15)->withQueryString(); // Keep query params (like ?page=2&search=abc)
     
         return Inertia::render('Categories/Index', [
-            'categories' => $categories,
-            'filters' => $request->only('search','sort'), // Optional: send back the filter
+             'categories' => $categories,
+            'filters' => [
+                'search' => $search,
+                'sort' => $sort,
+            ]
         ]);
     }
 

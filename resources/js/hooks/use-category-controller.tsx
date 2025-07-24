@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export function useCategoriesController(){
     const { filters, flash } = usePage<PageProps>().props ?? {};
     const [search, setSearch] = useState(filters?.search || '');
-    const [sort, setSort] = useState(filters?.sort || 'newest');
+    const [sort, setSort] = useState(filters?.sort || 'newest'); 
 
     type DialogState = {
         create: boolean;
@@ -59,7 +59,7 @@ export function useCategoriesController(){
           replace: true,
         }
       );
-    }
+    } 
 
     function confirmDelete() {
         if (!dialog.categoryToDelete) return;
@@ -95,12 +95,12 @@ export function useCategoriesController(){
 
   return {
     search,
-    sort,
+    sort, 
     setSearch,
     dialog,
     setDialog,
     handleSearch,
-    handleSortChange,
+    handleSortChange, 
     openCreateDialog,
     closeCreateDialog,
     openEditDialog,
