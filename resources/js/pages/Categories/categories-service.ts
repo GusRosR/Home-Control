@@ -19,9 +19,8 @@ export function onSubmit(
         },
         onError: (errors) => {
             onError?.();
-            /* toast('Ooops! Something went wrong!', {
-                description: `The record could not be created for the next reasons: ${errors}`,
-            }); */
+            console.error('Failed to submit', errors);
+           
         },
     });
 }
@@ -60,9 +59,8 @@ export function handleEdit(
         },
         onError: (errors) => {
             onError?.();
-            /* toast('Ooops! Something went wrong!', {
-                description: `The record could not be updated for the next reasons: ${errors}`,
-            }); */
+            console.error('Failed to edit', errors);
+
         },
     });
 }
